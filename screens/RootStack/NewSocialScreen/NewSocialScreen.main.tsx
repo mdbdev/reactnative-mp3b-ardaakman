@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Platform, View } from "react-native";
+import { Platform, View, Keyboard, TouchableWithoutFeedback} from "react-native";
 import { Appbar, TextInput, Snackbar, Button } from "react-native-paper";
 import { getFileObjectAsync } from "../../../Utils";
 
@@ -21,7 +21,6 @@ import { RootStackParamList } from "../RootStackScreen";
 interface Props {
   navigation: StackNavigationProp<RootStackParamList, "NewSocialScreen">;
 }
-
 export default function NewSocialScreen({ navigation }: Props) {
   // Event details.
   const [eventName, setEventName] = useState("");
@@ -36,6 +35,7 @@ export default function NewSocialScreen({ navigation }: Props) {
   const [message, setMessage] = useState("");
   // Loading state for submit button
   const [loading, setLoading] = useState(false);
+  const currentUserId = firebase.auth().currentUser!.uid;
 
   // Code for ImagePicker (from docs)
   useEffect(() => {
@@ -135,6 +135,8 @@ export default function NewSocialScreen({ navigation }: Props) {
         eventLocation: eventLocation,
         eventDescription: eventDescription,
         eventImage: downloadURL,
+        userID: currentUserId,
+        likes: 0
       };
       console.log("setting download url");
       await socialRef.set(doc);
@@ -159,6 +161,7 @@ export default function NewSocialScreen({ navigation }: Props) {
     <>
       <Bar />
       <View style={{ ...styles.container, padding: 20 }}>
+      <Button onPress={() => Keyboard.dismiss()} > Dismiss Keyboard</Button>
         <TextInput
           label="Event Name"
           value={eventName}

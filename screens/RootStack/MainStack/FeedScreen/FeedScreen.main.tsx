@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { View, FlatList, Text } from "react-native";
-import { Appbar, Button, Card } from "react-native-paper";
+import { Appbar, Button, Card, Headline } from "react-native-paper";
 import firebase from "firebase/app";
 import "firebase/firestore";
 import { SocialModel } from "../../../../models/social.js";
 import { styles } from "./FeedScreen.styles";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { MainStackParamList } from "../MainStackScreen.js";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 /* 
   Remember the navigation-related props from Project 2? They were called `route` and `navigation`,
@@ -26,6 +27,9 @@ interface Props {
 export default function FeedScreen({ navigation }: Props) {
   // List of social objects
   const [socials, setSocials] = useState<SocialModel[]>([]);
+  const [likes, setLikes] = useState(0);
+  const [changes, setChanges] = useState(true);
+  const [icon, setIcon] = useState("heart-outline");
 
   const currentUserId = firebase.auth().currentUser!.uid;
 
@@ -47,17 +51,57 @@ export default function FeedScreen({ navigation }: Props) {
   }, []);
 
   const toggleInterested = (social: SocialModel) => {
-    // TODO: Put your logic for flipping the user's "interested"
-    // status here, and call this method from your "like"
-    // button on each Social card.
+    if (icon === "heart") {
+      setIcon("heart-outline");
+    } else {
+      setIcon("heart");
+    }
+    
+    const ref = firebase.firestore().collection("socials").doc(social.id)
+
+    console.warn(changes);
+    if (changes) {
+      const res = ref.update({likes: likes + 1}).then(() => {
+        setLikes(likes + 1);
+        setChanges(false);
+      })
+    } else {
+      const res = ref.update({likes: likes - 1}).then(() => {
+        setLikes(likes - 1);
+        setChanges(true);
+      })
+    }
   };
 
   const deleteSocial = (social: SocialModel) => {
+    const documentRef = firebase.firestore().collection("socials").doc(social.id)
+    var doc_data = documentRef.get();
+    doc_data.then((data) => {
+      var fieldValue= data.get("userID");
+      if (fieldValue === social.userID) {
+        const res = firebase.firestore().collection("socials").doc(social.id);
+        res.delete().then(() => { 
+        }).catch((err) => console.error(err));
+      }
+    })
+    
     // TODO: Put your logic for deleting a social here,
     // and call this method from your "delete" button
     // on each Social card that was created by this user.
   };
 
+  const Liked = (social: SocialModel) => {
+    const documentRef = firebase.firestore().collection("socials").doc(social.id)
+    var doc_data = documentRef.get();
+    const likeValue = doc_data.then((data) => {
+      var aaa= data.get("likes");
+      setLikes(aaa);
+    })
+
+    return (
+      <Button icon = {icon} onPress = {() => toggleInterested(social)}>{likes}</Button>
+    )
+  }
   const renderSocial = ({ item }: { item: SocialModel }) => {
     const onPress = () => {
       navigation.navigate("DetailScreen", {
@@ -75,13 +119,22 @@ export default function FeedScreen({ navigation }: Props) {
             " • " +
             new Date(item.eventDate).toLocaleString()
           }
-        />
-        {/* TODO: Add a like/interested button & delete soccial button. See Card.Actions
-              in React Native Paper for UI/UX inspiration.
-              https://callstack.github.io/react-native-paper/card-actions.html */}
+        /> 
+        <Card.Actions>
+          <Button onPress = {() => deleteSocial(item)}> Delete </Button>
+          {Liked(item)}
+        </Card.Actions>
       </Card>
     );
   };
+
+  const noEvents = () => {
+    return (
+      <SafeAreaView>
+        <Headline >No Events so far! Add some!!</Headline>
+        </SafeAreaView>
+    )
+  }
 
   const Bar = () => {
     return (
@@ -113,7 +166,7 @@ export default function FeedScreen({ navigation }: Props) {
           // by reading the documentation :)
           // https://reactnative.dev/docs/flatlist#listemptycomponent
 
-          // ListEmptyComponent={ListEmptyComponent}
+          ListEmptyComponent={noEvents}
         />
       </View>
     </>

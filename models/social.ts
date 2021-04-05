@@ -5,6 +5,8 @@ export interface SocialModel {
   eventImage: string;
   eventLocation: string;
   eventName: string;
+  userID : string;
+  likes :number;
   // TODO: You may need to add attributes here
   // to implement your desired functionality.
   // The staff solutions add two attributes.
