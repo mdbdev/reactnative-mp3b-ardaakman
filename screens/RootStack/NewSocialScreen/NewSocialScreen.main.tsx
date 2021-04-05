@@ -136,7 +136,7 @@ export default function NewSocialScreen({ navigation }: Props) {
         eventDescription: eventDescription,
         eventImage: downloadURL,
         userID: currentUserId,
-        likes: 0
+        likes: []
       };
       console.log("setting download url");
       await socialRef.set(doc);

@@ -6,7 +6,7 @@ export interface SocialModel {
   eventLocation: string;
   eventName: string;
   userID : string;
-  likes :number;
+  likes :String[];
   // TODO: You may need to add attributes here
   // to implement your desired functionality.
   // The staff solutions add two attributes.

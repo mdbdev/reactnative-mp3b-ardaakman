@@ -27,9 +27,10 @@ interface Props {
 export default function FeedScreen({ navigation }: Props) {
   // List of social objects
   const [socials, setSocials] = useState<SocialModel[]>([]);
-  const [likes, setLikes] = useState(0);
+  const [likes, setLikes] = useState<String[]>([]);
   const [changes, setChanges] = useState(true);
   const [icon, setIcon] = useState("heart-outline");
+  const [inLikes, setInLikes] = useState(false);
 
   const currentUserId = firebase.auth().currentUser!.uid;
 
@@ -57,15 +58,24 @@ export default function FeedScreen({ navigation }: Props) {
       setIcon("heart");
     }
     const ref = firebase.firestore().collection("socials").doc(social.id)
-    if (changes) {
-      const res = ref.update({likes: likes + 1}).then(() => {
-        setLikes(likes + 1);
+
+    if (changes && !inLikes) {
+      const arr = likes;
+      arr.push(currentUserId)
+      setLikes(arr)
+      const res = ref.update({likes: likes}).then(() => {
         setChanges(false);
+        setInLikes(true);
+
       })
-    } else {
-      const res = ref.update({likes: likes - 1}).then(() => {
-        setLikes(likes - 1);
+    } else if (inLikes) {
+      const arr = likes;
+      const index = arr.indexOf(currentUserId);
+      arr.splice(index,1);
+      setLikes(arr);
+      const res = ref.update({likes: likes}).then(() => {
         setChanges(true);
+        setInLikes(false);
       })
     }
   };
@@ -96,8 +106,16 @@ export default function FeedScreen({ navigation }: Props) {
     })
 
     return (
-      <Button icon = {icon} onPress = {() => toggleInterested(social)}>{likes}</Button>
+      <Button icon = {icon} onPress = {() => toggleInterested(social)}>{layks()}</Button>
     )
+  }
+
+  const layks = () => {
+    if (!likes || !likes.includes(currentUserId)) {
+      return 0
+    } else {
+      return likes.length;
+    }
   }
   const renderSocial = ({ item }: { item: SocialModel }) => {
     const onPress = () => {
