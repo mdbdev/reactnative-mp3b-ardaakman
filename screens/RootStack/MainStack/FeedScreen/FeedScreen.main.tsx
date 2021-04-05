@@ -56,10 +56,7 @@ export default function FeedScreen({ navigation }: Props) {
     } else {
       setIcon("heart");
     }
-    
     const ref = firebase.firestore().collection("socials").doc(social.id)
-
-    console.warn(changes);
     if (changes) {
       const res = ref.update({likes: likes + 1}).then(() => {
         setLikes(likes + 1);
@@ -78,7 +75,7 @@ export default function FeedScreen({ navigation }: Props) {
     var doc_data = documentRef.get();
     doc_data.then((data) => {
       var fieldValue= data.get("userID");
-      if (fieldValue === social.userID) {
+      if (fieldValue === currentUserId) {
         const res = firebase.firestore().collection("socials").doc(social.id);
         res.delete().then(() => { 
         }).catch((err) => console.error(err));
